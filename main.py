@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    input_file_path = os.getenv("INPUT_FILE_PATH", './input_url_list.txt')
+    input_file_path = os.getenv("INPUT_FILE_PATH", 'input_url_list.conf')
 
     if not os.path.exists(input_file_path):
         logging.error(f'There is no input file!!! input_file_path: {input_file_path}')
