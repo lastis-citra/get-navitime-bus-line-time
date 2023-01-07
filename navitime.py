@@ -45,10 +45,16 @@ def get_diagram_stops_link(soup: BeautifulSoup, div_id: str, dl_class: str) -> l
 
     diagram_stops_link_list = []
     for dl_tag in dl_tags:
-        link = dl_tag.select_one('a')['href']
-        diagram_stops_link: str = f'https://www.navitime.co.jp{link}'
-        print(diagram_stops_link)
-        diagram_stops_link_list.append(diagram_stops_link)
+        li_tags = dl_tag.select('li')
+        dt_tag = dl_tag.select_one('dt')
+        hour = dt_tag.text.replace('\n', '')
+        print(f'HOUR: {hour}')
+        for li_tag in li_tags:
+            link = li_tag.select_one('a')['href']
+            time = li_tag.select_one('a').text.replace('\n', '')
+            diagram_stops_link: str = f'https://www.navitime.co.jp{link}'
+            print(f'MIN: {time} {diagram_stops_link}')
+            diagram_stops_link_list.append(diagram_stops_link)
 
     return diagram_stops_link_list
 
