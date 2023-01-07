@@ -72,9 +72,9 @@ def get_diagram_stops(soup: BeautifulSoup) -> BusData:
     for dl_tag in dl_tags:
         name = dl_tag.select_one('a.station-name-link').text
         # バス停名の（福井県）などを削除する
-        name = re.sub('（[^（）]*）$', '', name)
+        name = re.sub('（.*?）$', '', name)
         # バス停名の〔東福バス〕などを削除する
-        name = re.sub('（[^〔〕]*）$', '', name)
+        name = re.sub('〔.*?〕$', '', name)
         time = dl_tag.select_one('dd.time').text.replace('着', '').replace('発', '')
 
         stop = StopData(name, time)
