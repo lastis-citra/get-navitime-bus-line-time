@@ -51,7 +51,7 @@ def get_diagram_stops_link(soup: BeautifulSoup, div_id: str, dl_class: str) -> l
         print(f'HOUR: {hour}')
         for li_tag in li_tags:
             link = li_tag.select_one('a')['href']
-            time = li_tag.select_one('a').text.replace('\n', '')
+            time = li_tag.select_one('a').text.replace('\n', '').replace(' ', '')
             diagram_stops_link: str = f'https://www.navitime.co.jp{link}'
             print(f'MIN: {time} {diagram_stops_link}')
             diagram_stops_link_list.append(diagram_stops_link)
