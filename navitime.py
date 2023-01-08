@@ -1,4 +1,5 @@
 import re
+import sys
 
 from bs4 import BeautifulSoup
 
@@ -26,7 +27,7 @@ def prepare_div_id_and_dl_class(soup: BeautifulSoup, day: str, direction: str) -
     elif len(div_id_list) == 1:
         div_id = div_id_list.pop()
     else:
-        div_id = f'd_{direction}_{day}'
+        div_id = f'd_{day}_{direction}'
 
     dl_class = f'dl_{direction}'
 
@@ -55,6 +56,11 @@ def get_diagram_stops_link(soup: BeautifulSoup, div_id: str, dl_class: str) -> l
             diagram_stops_link: str = f'https://www.navitime.co.jp{link}'
             print(f'MIN: {time} {diagram_stops_link}')
             diagram_stops_link_list.append(diagram_stops_link)
+
+    # リンクが1つも取れていない場合はおかしいのでエラーで強制終了する
+    if len(diagram_stops_link_list) == 0:
+        print(f'ERROR: diagram_stops_link_list is empty!')
+        sys.exit(1)
 
     return diagram_stops_link_list
 
