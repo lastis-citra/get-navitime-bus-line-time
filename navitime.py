@@ -27,9 +27,9 @@ def prepare_div_id_and_dl_class(soup: BeautifulSoup, day: str, direction: str) -
     elif len(div_id_list) == 1:
         div_id = div_id_list.pop()
     else:
-        div_id = f'd_{day}_{direction}'
+        div_id = f'd_{direction}_{day}'
 
-    dl_class = f'dl_{direction}'
+    dl_class = f'dl_{day}'
 
     return div_id, dl_class
 
