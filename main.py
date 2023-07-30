@@ -23,7 +23,7 @@ if __name__ == '__main__':
         soup = util.download_html(input_data.url)
 
         div_id, dl_class = navitime.prepare_div_id_and_dl_class(soup, input_data.day, input_data.direction)
-        print(f'div_id: {div_id}, dl_class: {dl_class}')
+        # print(f'div_id: {div_id}, dl_class: {dl_class}')
 
         # 各バスごとの停車時間表へのリンクを取得する
         diagram_stops_link_list.extend(navitime.get_diagram_stops_link(soup, div_id, dl_class))

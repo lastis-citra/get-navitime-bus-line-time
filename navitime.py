@@ -42,7 +42,11 @@ def get_diagram_stops_link(soup: BeautifulSoup, div_id: str, dl_class: str) -> l
     :param dl_class: 読み込むdlタグのclass（dl_0など）
     :return: 各バスごとの停車時間表へのリンクのlist
     """
+    print(f'get_diagram_stops_link: div_id: {div_id}, dl_class: {dl_class}')
     dl_tags = soup.select(f'#{div_id} dl.{dl_class}')
+    if len(dl_tags) == 0:
+        print(f'get_diagram_stops_link: div_id: {div_id}, dl_class: dl_date alternatively')
+        dl_tags = soup.select(f'#{div_id} dl.dl_date')
 
     diagram_stops_link_list = []
     for dl_tag in dl_tags:
