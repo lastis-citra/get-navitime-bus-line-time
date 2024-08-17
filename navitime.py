@@ -52,6 +52,14 @@ def get_diagram_stops_link(soup: BeautifulSoup, div_id: str, dl_class: str) -> l
         div_id_alt = div_id_tmp[0] + '_' + div_id_tmp[1] + '_date'
         print(f'get_diagram_stops_link: div_id: {div_id_alt}, dl_class: dl_date alternatively')
         dl_tags = soup.select(f'#{div_id_alt} dl.dl_date')
+    if len(dl_tags) == 0:
+        div_id_tmp = div_id.split('_')
+        if div_id_tmp[1] == '0':
+            div_id_alt = div_id_tmp[0] + '_1_' + div_id_tmp[2]
+        else:
+            div_id_alt = div_id_tmp[0] + '_0_' + div_id_tmp[2]
+        print(f'get_diagram_stops_link: div_id: {div_id_alt}, dl_class: {dl_class} alternatively')
+        dl_tags = soup.select(f'#{div_id_alt} dl.{dl_class}')
 
     # print(f'dl_tags: {dl_tags}')
     diagram_stops_link_list = []
