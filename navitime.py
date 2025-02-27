@@ -134,6 +134,39 @@ def get_max_length_name_list(bus_list: list[BusData]) -> list[str]:
     return max_bus.get_name_list()
 
 
+def create_name_list_compare_order(old_name_list: list[str], check_name_list: list[str]) -> list[str]:
+    """
+    create_name_listを逆順で適用した場合とどちらが短くなるかを比較して短い方を採用する
+    :param old_name_list: 結合前のバス停名のリスト
+    :param check_name_list: チェックしたいバス停名のリスト
+    :return: バス停名のリスト
+    """
+    reverse_old_name_list = old_name_list.copy()
+    reverse_old_name_list.reverse()
+    reverse_check_name_list = check_name_list.copy()
+    reverse_check_name_list.reverse()
+
+    # print(f'---------')
+    # print(f'old_name_list: {old_name_list}')
+    # print(f'check_name_list: {check_name_list}')
+    normal_order_list = create_name_list(old_name_list, check_name_list)
+    # print(f'normal_order_list: {normal_order_list}')
+
+    old_name_list.reverse()
+    check_name_list.reverse()
+    # print(f'---------')
+    # print(f'reverse_old_name_list: {reverse_old_name_list}')
+    # print(f'reverse_check_name_list: {reverse_check_name_list}')
+    reverse_order_list = create_name_list(reverse_old_name_list, reverse_check_name_list)
+    reverse_order_list.reverse()
+    # print(f'reverse_order_list: {reverse_order_list}')
+
+    if len(normal_order_list) <= len(reverse_order_list):
+        return normal_order_list
+    else:
+        return reverse_order_list
+
+
 def create_name_list(old_name_list: list[str], check_name_list: list[str]) -> list[str]:
     """
     すべてのバスのバス停名のリストを結合する

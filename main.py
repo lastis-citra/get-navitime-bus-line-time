@@ -46,10 +46,10 @@ if __name__ == '__main__':
     for bus in bus_list:
         old_name_list = name_list
         check_name_list = bus.get_name_list()
-        # print(f'####################################################')
-        # print(f'old_name_list: {old_name_list}')
-        # print(f'check_name_list: {check_name_list}')
-        name_list = navitime.create_name_list(name_list, bus.get_name_list())
+        print(f'####################################################')
+        print(f'old_name_list: {old_name_list}')
+        print(f'check_name_list: {check_name_list}')
+        name_list = navitime.create_name_list_compare_order(name_list, bus.get_name_list())
 
     print(f'name_list: {name_list}')
     # print(','.join(name_list))
