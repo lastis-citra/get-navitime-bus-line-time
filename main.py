@@ -6,6 +6,25 @@ import util
 
 logger = logging.getLogger(__name__)
 
+
+def create_diagram_stops_link_list(_diagram_stops_link_list: list[str], _input_data_list):
+    """
+    すべてのバスのダイヤの停車バス停の時刻リストを作成する
+    :param _diagram_stops_link_list:
+    :param _input_data_list:
+    :return:
+    """
+    for input_data in _input_data_list:
+        logging.info(input_data)
+        _soup = util.download_html(input_data.url)
+
+        div_id, dl_class = navitime.prepare_div_id_and_dl_class(_soup, input_data.day, input_data.direction)
+        # print(f'div_id: {div_id}, dl_class: {dl_class}')
+
+        # 各バスごとの停車時間表へのリンクを取得する
+        _diagram_stops_link_list.extend(navitime.get_diagram_stops_link(_soup, div_id, dl_class))
+
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     input_file_path = os.getenv("INPUT_FILE_PATH", 'input_url_list.conf')
@@ -18,15 +37,7 @@ if __name__ == '__main__':
     print(f'input_data_list: {input_data_list}')
 
     diagram_stops_link_list = []
-    for input_data in input_data_list:
-        logging.info(input_data)
-        soup = util.download_html(input_data.url)
-
-        div_id, dl_class = navitime.prepare_div_id_and_dl_class(soup, input_data.day, input_data.direction)
-        # print(f'div_id: {div_id}, dl_class: {dl_class}')
-
-        # 各バスごとの停車時間表へのリンクを取得する
-        diagram_stops_link_list.extend(navitime.get_diagram_stops_link(soup, div_id, dl_class))
+    create_diagram_stops_link_list(diagram_stops_link_list, input_data_list)
 
     print(f'diagram_stops_link_list: {diagram_stops_link_list}')
 
