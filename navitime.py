@@ -1,8 +1,8 @@
 import re
-import sys
 
 from bs4 import BeautifulSoup
 
+import util
 from model.stop import StopData, BusData
 
 
@@ -34,32 +34,35 @@ def prepare_div_id_and_dl_class(soup: BeautifulSoup, day: str, direction: str) -
     return div_id, dl_class
 
 
-def get_diagram_stops_link(soup: BeautifulSoup, div_id: str, dl_class: str) -> list[str]:
+def get_diagram_stops_link_list(soup: BeautifulSoup, div_id: str, dl_class: str, no_alternative: bool) -> list[str]:
     """
     各バスごとの停車時間表へのリンクを取得する
     :param soup: ページ全体のsoup
     :param div_id: 読み込むdivタグのid（d_0_0など）
     :param dl_class: 読み込むdlタグのclass（dl_0など）
+    :param no_alternative: trueの場合，入力された通りの方向のものを探す
     :return: 各バスごとの停車時間表へのリンクのlist
     """
     print(f'get_diagram_stops_link: div_id: {div_id}, dl_class: {dl_class}')
     dl_tags = soup.select(f'#{div_id} dl.{dl_class}')
-    if len(dl_tags) == 0:
+    div_tags = soup.select('div.diagramTable')
+    if len(div_tags) > 0 and len(dl_tags) == 0:
         print(f'get_diagram_stops_link: div_id: {div_id}, dl_class: dl_date alternatively')
         dl_tags = soup.select(f'#{div_id} dl.dl_date')
-    if len(dl_tags) == 0:
+    if len(div_tags) > 0 and len(dl_tags) == 0:
         div_id_tmp = div_id.split('_')
         div_id_alt = div_id_tmp[0] + '_' + div_id_tmp[1] + '_date'
         print(f'get_diagram_stops_link: div_id: {div_id_alt}, dl_class: dl_date alternatively')
         dl_tags = soup.select(f'#{div_id_alt} dl.dl_date')
-    if len(dl_tags) == 0:
-        div_id_tmp = div_id.split('_')
-        if div_id_tmp[1] == '0':
-            div_id_alt = div_id_tmp[0] + '_1_' + div_id_tmp[2]
-        else:
-            div_id_alt = div_id_tmp[0] + '_0_' + div_id_tmp[2]
-        print(f'get_diagram_stops_link: div_id: {div_id_alt}, dl_class: {dl_class} alternatively')
-        dl_tags = soup.select(f'#{div_id_alt} dl.{dl_class}')
+    if not no_alternative:
+        if len(div_tags) > 0 and len(dl_tags) == 0:
+            div_id_tmp = div_id.split('_')
+            if div_id_tmp[1] == '0':
+                div_id_alt = div_id_tmp[0] + '_1_' + div_id_tmp[2]
+            else:
+                div_id_alt = div_id_tmp[0] + '_0_' + div_id_tmp[2]
+            print(f'get_diagram_stops_link: div_id: {div_id_alt}, dl_class: {dl_class} alternatively')
+            dl_tags = soup.select(f'#{div_id_alt} dl.{dl_class}')
 
     # print(f'dl_tags: {dl_tags}')
     diagram_stops_link_list = []
@@ -78,7 +81,7 @@ def get_diagram_stops_link(soup: BeautifulSoup, div_id: str, dl_class: str) -> l
     # リンクが1つも取れていない場合はおかしいのでエラーで強制終了する
     if len(diagram_stops_link_list) == 0:
         print(f'ERROR: diagram_stops_link_list is empty!')
-        sys.exit(1)
+        # sys.exit(1)
 
     return diagram_stops_link_list
 
@@ -227,3 +230,22 @@ def create_bus_time_table(name_list: list[str], stop_list: list[StopData]) -> li
     else:
         stop = stop_list.pop(0)
         return [stop.time] + create_bus_time_table(name_list, stop_list)
+
+
+def create_url_list(route_url: str) -> list[str]:
+    """
+    バス系統一覧ページのURLから時刻表URLのリストを取得する
+    :param route_url: バス系統一覧ページのURL
+    :return: 時刻表URLのリスト
+    """
+    url_list = []
+
+    soup = util.download_html(route_url)
+    li_tags = soup.select('ul.dest-list')
+    for li_tag in li_tags:
+        links = li_tag.select('a')
+        for link in links:
+            url = link.attrs['href']
+            url_list.append(f'https:{url}')
+
+    return url_list

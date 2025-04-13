@@ -3,15 +3,18 @@ import os
 
 import navitime
 import util
+from model.input import BusLineData
+from model.input import InputData
 
 logger = logging.getLogger(__name__)
 
 
-def create_diagram_stops_link_list(_diagram_stops_link_list: list[str], _input_data_list):
+def create_diagram_stops_link_list(_diagram_stops_link_list: list[BusLineData], _input_data_list, no_alternative: bool):
     """
     すべてのバスのダイヤの停車バス停の時刻リストを作成する
     :param _diagram_stops_link_list:
     :param _input_data_list:
+    :param no_alternative 入力された通りの方向のものを探す
     :return:
     """
     for input_data in _input_data_list:
@@ -22,30 +25,70 @@ def create_diagram_stops_link_list(_diagram_stops_link_list: list[str], _input_d
         # print(f'div_id: {div_id}, dl_class: {dl_class}')
 
         # 各バスごとの停車時間表へのリンクを取得する
-        _diagram_stops_link_list.extend(navitime.get_diagram_stops_link(_soup, div_id, dl_class))
+        diagram_stops_link_list_1 = navitime.get_diagram_stops_link_list(_soup, div_id, dl_class, no_alternative)
+
+        if len(diagram_stops_link_list_1) > 0:
+            print(f'diagram_stops_link_list_1: {diagram_stops_link_list_1}')
+            bus_line_data_list = []
+            for diagram_stops_link_1 in diagram_stops_link_list_1:
+                bus_line_data = BusLineData(diagram_stops_link_1, input_data.destination_list)
+                bus_line_data_list.append(bus_line_data)
+            _diagram_stops_link_list.extend(bus_line_data_list)
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     input_file_path = os.getenv("INPUT_FILE_PATH", 'input_url_list.conf')
+    input_route_file_path = os.getenv("INPUT_ROUTE_FILE_PATH", 'input_route_url_list.conf')
 
-    if not os.path.exists(input_file_path):
-        logging.error(f'There is no input file!!! input_file_path: {input_file_path}')
+    if not os.path.exists(input_file_path) and not os.path.exists(input_route_file_path):
+        logging.error(f'There is no input file!!! input_file_path: {input_file_path}'
+                      f'or input_route_file_path: {input_route_file_path}')
         exit(1)
 
-    input_data_list = util.read_input(input_file_path)
+    diagram_stops_link_list: list[BusLineData] = []
+    input_route_data_list = []
+    input_data_list = []
+
+    # 先にinput_route_file_pathの方を読んで，得られるURLがある場合は路線リストの処理，ない場合は路線の処理を行う
+    if os.path.exists(input_route_file_path):
+        input_route_data_list = util.read_route_input(input_route_file_path)
+        print(f'input_route_data_list: {input_route_data_list}')
+
+    # 路線リストから得られるURLがあるかどうかチェック
+    if len(input_route_data_list) > 0:
+        for input_route_data in input_route_data_list:
+            url_list = navitime.create_url_list(input_route_data.route_url)
+            for url in url_list:
+                input_data_list.append(InputData(url, input_route_data.day, 0, input_route_data.destination_list))
+                input_data_list.append(InputData(url, input_route_data.day, 1, input_route_data.destination_list))
+        create_diagram_stops_link_list(diagram_stops_link_list, input_data_list, True)
+    else:
+        input_data_list = util.read_input(input_file_path)
+        create_diagram_stops_link_list(diagram_stops_link_list, input_data_list, False)
+
     print(f'input_data_list: {input_data_list}')
-
-    diagram_stops_link_list = []
-    create_diagram_stops_link_list(diagram_stops_link_list, input_data_list)
-
     print(f'diagram_stops_link_list: {diagram_stops_link_list}')
 
     # すべてのバスの発着時刻とバス停名のリスト
     bus_list = []
     for diagram_stops_link in diagram_stops_link_list:
-        soup = util.download_html(diagram_stops_link)
-        bus_list.append(navitime.get_diagram_stops(soup))
+        soup = util.download_html(diagram_stops_link.bus_url)
+        diagram_stops = navitime.get_diagram_stops(soup)
+        # print(f'diagram_stops: {diagram_stops}')
+        check = False
+        # 目的地リストが空の場合はチェックしない
+        if len(diagram_stops_link.destination_list) == 0:
+            check = True
+        else:
+            for stop in diagram_stops.stop_list:
+                if stop.name in diagram_stops_link.destination_list:
+                    # print(f'stop.name: {stop.name}')
+                    check = True
+        if check:
+            bus_list.append(diagram_stops)
+        else:
+            print(f'diagram_stops_link.destination_list: {diagram_stops_link.destination_list} error!')
 
     print(f'bus_list: {bus_list}')
 
