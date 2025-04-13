@@ -31,8 +31,15 @@ def create_diagram_stops_link_list(_diagram_stops_link_list: list[BusLineData], 
             print(f'diagram_stops_link_list_1: {diagram_stops_link_list_1}')
             bus_line_data_list = []
             for diagram_stops_link_1 in diagram_stops_link_list_1:
-                bus_line_data = BusLineData(diagram_stops_link_1, input_data.destination_list)
-                bus_line_data_list.append(bus_line_data)
+                # 同じURLが2回以上入らないようにチェックする
+                _check = True
+                for _diagram_stops_link in _diagram_stops_link_list:
+                    if _diagram_stops_link.bus_url.split('?')[0] == diagram_stops_link_1.split('?')[0]:
+                        _check = False
+                        break
+                if _check:
+                    bus_line_data = BusLineData(diagram_stops_link_1, input_data.destination_list)
+                    bus_line_data_list.append(bus_line_data)
             _diagram_stops_link_list.extend(bus_line_data_list)
 
 
@@ -85,6 +92,7 @@ if __name__ == '__main__':
                 if stop.name in diagram_stops_link.destination_list:
                     # print(f'stop.name: {stop.name}')
                     check = True
+                    break
         if check:
             bus_list.append(diagram_stops)
         else:
