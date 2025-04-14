@@ -61,12 +61,12 @@ def read_route_input(file_path: str) -> list[InputRouteData]:
         split_line = line.split(',')
 
         destination_list = []
-        destinations = split_line[2]
+        destinations = split_line[3]
 
         for destination in destinations.split('|'):
             destination_list.append(destination)
 
-        input_route_data = InputRouteData(split_line[0], split_line[1], destination_list)
+        input_route_data = InputRouteData(split_line[0], split_line[1], split_line[2], destination_list)
         input_route_data_list.append(input_route_data)
 
     return input_route_data_list

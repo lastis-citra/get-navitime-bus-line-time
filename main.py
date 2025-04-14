@@ -38,7 +38,7 @@ def create_diagram_stops_link_list(_diagram_stops_link_list: list[BusLineData], 
                         _check = False
                         break
                 if _check:
-                    bus_line_data = BusLineData(diagram_stops_link_1, input_data.destination_list)
+                    bus_line_data = BusLineData(diagram_stops_link_1, input_data.origin, input_data.destination_list)
                     bus_line_data_list.append(bus_line_data)
             _diagram_stops_link_list.extend(bus_line_data_list)
 
@@ -67,8 +67,10 @@ if __name__ == '__main__':
         for input_route_data in input_route_data_list:
             url_list = navitime.create_url_list(input_route_data.route_url)
             for url in url_list:
-                input_data_list.append(InputData(url, input_route_data.day, 0, input_route_data.destination_list))
-                input_data_list.append(InputData(url, input_route_data.day, 1, input_route_data.destination_list))
+                input_data_list.append(
+                    InputData(url, input_route_data.day, 0, input_route_data.origin, input_route_data.destination_list))
+                input_data_list.append(
+                    InputData(url, input_route_data.day, 1, input_route_data.origin, input_route_data.destination_list))
         create_diagram_stops_link_list(diagram_stops_link_list, input_data_list, True)
     else:
         input_data_list = util.read_input(input_file_path)
@@ -83,20 +85,35 @@ if __name__ == '__main__':
         soup = util.download_html(diagram_stops_link.bus_url)
         diagram_stops = navitime.get_diagram_stops(soup)
         # print(f'diagram_stops: {diagram_stops}')
-        check = False
-        # 目的地リストが空の場合はチェックしない
-        if len(diagram_stops_link.destination_list) == 0:
-            check = True
+        # 出発地のバス停が含まれているかどうかチェック
+        check_origin = False
+        # 目的地リストのバス停が含まれているかどうかチェック
+        check_destination = False
+        # 出発地か目的地リストが空の場合はチェックしない
+        # print(f'origin: {diagram_stops_link.origin}, destination_list: {diagram_stops_link.destination_list}')
+        if len(diagram_stops_link.destination_list) == 0 or diagram_stops_link.origin == '':
+            check_origin = True
+            check_destination = True
+            print('No check origin and destination!')
         else:
             for stop in diagram_stops.stop_list:
+                if stop.name == diagram_stops_link.origin:
+                    # print(
+                    #     f'stop.name: {stop.name}, check_origin: {check_origin}, check_destination: {check_destination}, '
+                    #     f'origin: {diagram_stops_link.origin}, destination_list: {diagram_stops_link.destination_list}')
+                    check_origin = True
                 if stop.name in diagram_stops_link.destination_list:
-                    # print(f'stop.name: {stop.name}')
-                    check = True
+                    # print(
+                    #     f'stop.name: {stop.name}, check_origin: {check_origin}, check_destination: {check_destination}, '
+                    #     f'origin: {diagram_stops_link.origin}, destination_list: {diagram_stops_link.destination_list}')
+                    check_destination = True
                     break
-        if check:
+        # origin -> destination の順で見つかった場合のみリストに入れる
+        if check_origin and check_destination:
             bus_list.append(diagram_stops)
         else:
-            print(f'diagram_stops_link.destination_list: {diagram_stops_link.destination_list} error!')
+            print(
+                f'origin: {diagram_stops_link.origin} to destination_list: {diagram_stops_link.destination_list} error!')
 
     print(f'bus_list: {bus_list}')
 
