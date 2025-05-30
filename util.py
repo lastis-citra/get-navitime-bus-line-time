@@ -39,7 +39,7 @@ def read_input(file_path: str) -> list[InputData]:
         if line.startswith('#') or line.startswith(';'):
             continue
         split_line = line.split(',')
-        input_data = InputData(split_line[0], split_line[1], split_line[2], [])
+        input_data = InputData(split_line[0], split_line[1], split_line[2], [], [])
         input_data_list.append(input_data)
 
     return input_data_list
